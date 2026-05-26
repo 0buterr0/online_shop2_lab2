@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель Адміністратора — Online Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .order-list-section { max-width: 1200px; margin: 20px auto; padding: 20px; background: #f4f4f9; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>🛠️ Панель Адміністратора</h2>
+        <div>
+            <a href="index.html">До магазину</a>
+            <a href="#" onclick="logoutUser()" style="color: #e74c3c;">Вийти</a>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <div class="card">
+            <h2>📦 Додати новий товар</h2>
+            <form id="product-form">
+                <input type="text" id="p-title" placeholder="Назва товару" required style="width: 100%; margin-bottom: 10px;">
+                <input type="number" id="p-price" placeholder="Ціна" step="0.01" required style="width: 100%; margin-bottom: 10px;">
+                <input type="number" id="p-stock" placeholder="Кількість" required style="width: 100%; margin-bottom: 10px;">
+                <button type="submit" class="btn btn-success" style="width: 100%;">Додати в магазин</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>🚫 Керування "Чорним списком"</h2>
+            <input type="number" id="u-id" placeholder="ID Користувача" required style="width: 100%; margin-bottom: 10px;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="handleBlock(true)" class="btn btn-danger" style="flex: 1;">Заблокувати</button>
+                <button onclick="handleBlock(false)" class="btn" style="flex: 1; background: #95a5a6;">Розблокувати</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-list-section" id="admin-orders-container">
+        <h3>📊 Усі замовлення клієнтів:</h3>
+        <div id="admin-orders-list">Завантаження...</div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Перевірка адміна
+        if (localStorage.getItem("username") !== "admin") {
+            alert("Доступ заборонено!");
+            window.location.href = "index.html";
+        }
+
+        // Завантаження замовлень
+        async function loadAllOrders() {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://127.0.0.1:8000/api/orders/all", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const orders = await response.json();
+                const list = document.getElementById("admin-orders-list");
+                list.innerHTML = orders.map(o => `
+                    <div style="background: #fff; padding: 10px; margin: 5px 0; border-radius: 4px;">
+                        Замовлення №${o.id} | Клієнт ID: ${o.user_id} | Сума: ${o.total_price} грн | Статус: ${o.is_paid ? '✅ Оплачено' : '⏳ В очікуванні'}
+                    </div>
+                `).join("");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadAllOrders);
+
+        // ... (твої функції product-form та handleBlock залишаються тут без змін) ...
+    </script>
+</body>
+</html>

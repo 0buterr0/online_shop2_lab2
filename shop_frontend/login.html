@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Вхід / Реєстрація — Online Shop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="card" style="max-width: 400px; margin: 100px auto;">
+        <h2 id="form-title">Вхід до системи</h2>
+        
+        <div id="auth-error" style="color: red; margin-bottom: 15px; display: none;"></div>
+
+        <form id="auth-form">
+            <div class="form-group">
+                <label for="username">Логін:</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group" id="email-group" style="display: none;">
+                <label for="email">Email:</label>
+                <input type="email" id="email">
+            </div>
+            <div class="form-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn" id="submit-btn" style="width: 100%;">Увійти</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 15px;">
+            <a href="#" id="toggle-auth">Немає акаунту? Зареєструватися</a>
+        </p>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Невеличкий скрипт для перемикання між Входом та Реєстрацією
+        let isLogin = true;
+        const toggleBtn = document.getElementById('toggle-auth');
+        const emailGroup = document.getElementById('email-group');
+        const formTitle = document.getElementById('form-title');
+        const submitBtn = document.getElementById('submit-btn');
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLogin = !isLogin;
+            if (isLogin) {
+                formTitle.innerText = "Вхід до системи";
+                emailGroup.style.display = "none";
+                submitBtn.innerText = "Увійти";
+                toggleBtn.innerText = "Немає акаунту? Зареєструватися";
+            } else {
+                formTitle.innerText = "Реєстрація клієнта";
+                emailGroup.style.display = "block";
+                submitBtn.innerText = "Створити акаунт";
+                toggleBtn.innerText = "Вже є акаунт? Увійти";
+            }
+        });
+
+        // Обробка відправки форми
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorDiv = document.getElementById('auth-error');
+            errorDiv.style.display = "none";
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (isLogin) {
+                // Викликаємо функцію входу з app.js
+                const success = await loginUser(username, password);
+                if (success) window.location.href = 'index.html';
+            } else {
+                const email = document.getElementById('email').value;
+                const success = await registerUser(username, email, password);
+                if (success) {
+                    alert("Реєстрація успішна! Тепер увійдіть.");
+                    toggleBtn.click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.vscode/
+shop_backend/shop_v2.db

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Головна — Магазин REST API</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="admin-orders-container" style="margin-top: 30px; padding: 15px; border: 1px solid #ddd; display: none;">
+    <h3>Усі замовлення клієнтів (Адмін)</h3>
+    <div id="admin-orders-list"></div>
+</div>
+<div id="admin-orders-container"></div>
+    <div class="navbar">
+        <h2>💻 REST-Shop <span id="user-display" style="font-size: 14px; color: #2ecc71;"></span></h2>
+        <div>
+            <a href="index.html">Каталог</a>
+            <a href="admin.html" id="admin-link" style="display:none; color: #f1c40f;">Адмінка</a>
+            <a href="#" onclick="logoutUser()" style="color: #e74c3c;">Вийти</a>
+        </div>
+    </div>
+
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <h2>🛒 Каталог товарів</h2>
+        <div id="products-grid" class="grid" style="margin-bottom: 40px;">
+            </div>
+
+        <hr>
+
+        <h2>📋 Мої замовлення (Кошик та статуси)</h2>
+        <div id="orders-list" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Функція збирання інтерфейсу користувача
+        async function loadDashboard() {
+            const token = localStorage.getItem("token");
+            const username = localStorage.getItem("username");
+            
+            if (!token) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            document.getElementById('user-display').innerText = `(Вітаємо, ${username}!)`;
+            
+            // Якщо логін admin — показуємо лінк на панель адміна
+            if (username === "admin") {
+                document.getElementById('admin-link').style.display = "inline";
+            }
+
+            // 1. Рендеримо товари
+            const productsGrid = document.getElementById('products-grid');
+            productsGrid.innerHTML = "Завантаження товарів...";
+            const products = await fetchProducts();
+            productsGrid.innerHTML = "";
+            
+            if(products.length === 0) {
+                productsGrid.innerHTML = "<p>Наразі товарів немає в наявності.</p>";
+            }
+
+            products.forEach(p => {
+                productsGrid.innerHTML += `
+                    <div class="card">
+                        <h3>${p.title}</h3>
+                        <p>Ціна: <strong>${p.price} грн</strong></p>
+                        <p>На складі: ${p.stock} шт.</p>
+                        <button class="btn ${p.stock > 0 ? '' : 'btn-danger'}" 
+                                onclick="createOrder(${p.id}, 1)" ${p.stock > 0 ? '' : 'disabled'}>
+                            ${p.stock > 0 ? 'Купити' : 'Немає в наявності'}
+                        </button>
+                    </div>
+                `;
+            });
+
+            // 2. Рендеримо замовлення
+            const ordersList = document.getElementById('orders-list');
+            ordersList.innerHTML = "Завантаження замовлень...";
+            const orders = await fetchMyOrders();
+            ordersList.innerHTML = "";
+
+            if (orders.length === 0) {
+                ordersList.innerHTML = "<p>У вас ще немає замовлень.</p>";
+                return;
+            }
+
+            orders.forEach(o => {
+                ordersList.innerHTML += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+                        <div>
+                            <strong>${o.product.title}</strong> — ${o.quantity} шт. на суму <strong>${o.total_price} грн</strong>
+                        </div>
+                        <div>
+                            ${o.is_paid 
+                                ? '<span style="color: green; font-weight: bold;">Оплачено ✓</span>' 
+                                : `<button class="btn btn-success" onclick="payOrder(${o.id})">Оплатити</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Запускаємо рендер при завантаженні сторінки
+        window.onload = loadDashboard;
+    </script>
+</body>
+</html>
